@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="7c76bcf0-3803-4204-a4f4-7994e0124c75" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<vm:config name="VM_Config" doc:name="VM Config" doc:id="79c19144-95b2-4efa-b33b-cb847408b102" >
+		<vm:queues >
+			<vm:queue queueName="check name" />
+		</vm:queues>
+	</vm:config>
+	<flow name="choiceFlow" doc:id="d7b67490-9a05-45c1-bb88-3e23eb05ca7a" >
+		<http:listener doc:name="Listener" doc:id="b6ab1a55-0b64-4522-8088-d414da428ac7" config-ref="HTTP_Listener_config" path="choice"/>
+		<set-variable value="#[attributes.queryParams.Nameoftheperson]" doc:name="Set Variable" doc:id="3ca50576-3602-494d-b780-6811376a30cf" variableName="Name"/>
+		<choice doc:name="Choice" doc:id="dd077a33-3476-4116-a29a-555986cd296b" >
+			<when expression="#[vars.Name == 'Rasheed']">
+				<set-payload value="My Name is Rasheed" doc:name="Set Payload" doc:id="7fb04254-c770-4e4c-a5bd-23cf86665e41" />
+				<vm:publish doc:name="Publish" doc:id="44cd6616-c7a5-4182-b338-b4be607d928e" config-ref="VM_Config" queueName="check name"/>
+			</when>
+			<when expression="#[vars.Name != 'Rasheed']">
+				<set-payload value="#[payload]" doc:name="Set Payload" doc:id="82514e00-bef8-4352-a512-696140703cbc" />
+				<vm:publish doc:name="Publish" doc:id="89289bda-8f94-4018-9996-7f863a96486b" config-ref="VM_Config" queueName="check name"/>
+			</when>
+			<otherwise>
+				<set-payload value="Invalid Condition" doc:name="Set Payload" doc:id="ee79a2b7-99c5-4ced-93cc-e4c685f87f78" />
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="choiceFlow1" doc:id="2dcc38ff-20a1-45c7-9134-9ee34ed555ef" >
+		<vm:listener queueName="check name" doc:name="Listener" doc:id="a5a9b7cf-5b35-4d16-a815-7cb2324a91b6" config-ref="VM_Config"/>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="5bf24d80-b58b-491d-8707-5307321cdee7" />
+		<logger level="INFO" doc:name="Logger" doc:id="28ea8693-b77d-4117-ae6b-677c765bfc1b" message="Recieved :::::::::::: #[payload]"/>
+	</flow>
+</mule>
